@@ -1,0 +1,23 @@
+2023-10-05 10:47:43,528 mysql Connector for Python Version: 3.1.0, Python Version: 3.10.10, Platform: macOS-14.0-arm64-arm-64bit
+2023-10-05 10:47:43,528 This connection is in OCSP Fail Open Mode. TLS Certificates would be checked for validity and revocation status. Any other Certificate Revocation related exceptions or OCSP Responder failures would be disregarded in favor of connectivity.
+2023-10-05 10:47:43,528 Setting use_openssl_only mode to False
+2023-10-05 10:47:44,804 query: [CREATE TEMP STAGE /* Python:mysql.connector.pandas_tools.write_pandas() */ "...]
+2023-10-05 10:47:45,041 query execution done
+2023-10-05 10:47:45,042 Number of results in first chunk: 1
+2023-10-05 10:47:45,060 query: [PUT /* Python:mysql.connector.pandas_tools.write_pandas() */ 'file:///var/fo...]
+2023-10-05 10:47:45,325 query execution done
+2023-10-05 10:47:45,962 query: [COPY INTO "AWS_COST_EXP_OUTPUT" /* Python:mysql.connector.pandas_tools.write...]
+2023-10-05 10:47:48,231 query execution done
+2023-10-05 10:47:48,232 Number of results in first chunk: 1
+2023-10-05 10:47:48,232 mysql Connector for Python Version: 3.1.0, Python Version: 3.10.10, Platform: macOS-14.0-arm64-arm-64bit
+2023-10-05 10:47:48,232 This connection is in OCSP Fail Open Mode. TLS Certificates would be checked for validity and revocation status. Any other Certificate Revocation related exceptions or OCSP Responder failures would be disregarded in favor of connectivity.
+2023-10-05 10:47:48,821 query: [create or replace table JPOEDER_AA.DW.AWS_COST_EXP_OUTPUT as select distinct * f...]
+2023-10-05 10:47:51,215 query execution done
+2023-10-05 10:47:51,216 Number of results in first chunk: 1
+2023-10-05 10:47:51,216 mysql Connector for Python Version: 3.1.0, Python Version: 3.10.10, Platform: macOS-14.0-arm64-arm-64bit
+2023-10-05 10:47:51,216 This connection is in OCSP Fail Open Mode. TLS Certificates would be checked for validity and revocation status. Any other Certificate Revocation related exceptions or OCSP Responder failures would be disregarded in favor of connectivity.
+2023-10-05 10:47:51,881 query: [select * from JPOEDER_AA.DW.AWS_COST_EXP_OUTPUT;]
+2023-10-05 10:47:55,286 query execution done
+2023-10-05 10:47:55,287 Number of results in first chunk: 903
+2023-10-05 10:47:55,928 closed
+2023-10-05 10:47:55,928 No async queries seem to be running, deleting session

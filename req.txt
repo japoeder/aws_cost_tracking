@@ -1,0 +1,10 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-arm64
+numpy=1.26
+pandas=2.1.4
+pre-commit=3.6.1
+pylint=2.16.2
+sqlalchemy=2.0.29
+slack_sdk=3.27.1
+boto3=1.29.1
