@@ -1,31 +1,48 @@
-from datetime import datetime, timedelta
-from utilities.mysqlConnect import *
+"""Processing AWS cost data alerting on anomalies."""
+
+import warnings
 import pandas as pd
 import numpy as np
 from scipy.stats import zscore
+from utilities.mysqlConnect import paramDefs, mysqlQuery
+
+np.seterr(divide="ignore", invalid="ignore")
 
 
-def alerting_amazon(user, pwd, cwd, z_in):
+# Use warnings to catch and ignore 'RuntimeWarning: Degrees of freedom <= 0 for slice' warnings
+warnings.filterwarnings("ignore", "Degrees of freedom <= 0 for slice")
+
+
+def alerting_amazon(envConnData, z_in, dt_to_proc):
+    """Method to process AWS cost data and alert on anomalies."""
     #####################################
     #####   AWS - DATA PROCESSING  ######
     #####################################
 
     # Instantiate connection dictionary
-    connDict = paramDefs(user, pwd)
+    connDict = paramDefs(envConnData)
     payload = connDict.copy()
 
     # Query cat & cleaned data
-    ccAWS = """select * from JPOEDER_AA.DW.AWS_COST_EXP_OUTPUT
-                where STARTDATE >= dateadd(year, -1, current_date);"""
+    # Query for the last year of data based on dt_to_proc
+    ccAWS = f"""SELECT 
+                    * 
+                FROM AWS_COST_EXP_OUTPUT
+                WHERE 
+                    STARTDATE >= DATE_ADD(STR_TO_DATE('{dt_to_proc}', '%Y-%m-%d'), INTERVAL -1 YEAR)
+                    AND STARTDATE <= STR_TO_DATE('{dt_to_proc}', '%Y-%m-%d')
+                ;"""
     payload["dl"] = True
     payload["query"] = ccAWS
-    awsCosts = snowQuery(payload)
+    awsCosts = mysqlQuery(payload)
     awsCosts["USD"] = awsCosts["USD"].astype(float)
+    awsCosts["STARTDATE"] = pd.to_datetime(awsCosts["STARTDATE"])
 
     awsCalcs = awsCosts[
         ["SERVICE", "TAG", "STARTDATE", "DAY", "WEEK", "MONTH", "YEAR", "USD"]
     ].copy()
     awsCalcs["yearWK"] = awsCosts["YEAR"].astype(int) * 100 + awsCosts["WEEK"]
+    # Ensure STARTDATE is a datetime type and USD is a float type
 
     ################################
     # Service day level calculations
@@ -40,7 +57,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
     # Z-score by service across days
     awsSvcDayZs = awsSvcDayAgg.copy()
     awsSvcDayZs["svc_day_zscore"] = awsSvcDayZs.groupby(["SERVICE"])["USD"].transform(
-        zscore
+        lambda x: zscore(x, ddof=1)
     )
     awsSvcDayZs = awsSvcDayZs.drop("USD", axis=1)
 
@@ -92,7 +109,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
     awsSvcTagDayZs = awsSvcTagDayAgg.copy()
     awsSvcTagDayZs["svc_tag_day_zscore"] = awsSvcTagDayZs.groupby(["SERVICE", "TAG"])[
         "USD"
-    ].transform(zscore)
+    ].transform(lambda x: zscore(x, ddof=1))
     awsSvcTagDayZs = awsSvcTagDayZs.drop("USD", axis=1)
 
     # Moments by service across days
@@ -122,7 +139,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
     # Z-score by service across weeks
     awsSvcWkZs = awsSvcWkAgg.copy()
     awsSvcWkZs["svc_wk_zscore"] = awsSvcWkZs.groupby(["SERVICE"])["USD"].transform(
-        zscore
+        lambda x: zscore(x, ddof=1)
     )
     awsSvcWkZs = awsSvcWkZs.drop("USD", axis=1)
 
@@ -150,7 +167,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
     awsSvcTagWkZs = awsServTagWkAgg.copy()
     awsSvcTagWkZs["svc_tag_wk_zscore"] = awsSvcTagWkZs.groupby(["SERVICE", "TAG"])[
         "USD"
-    ].transform(zscore)
+    ].transform(lambda x: zscore(x, ddof=1))
     awsSvcTagWkZs = awsSvcTagWkZs.drop("USD", axis=1)
 
     # Moments by service-tag across weeks
@@ -163,7 +180,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
         "svc_tag_wk_usd_max",
         "svc_tag_wk_usd_mean",
     ]
-    svcTagMoments = svcTagWkMoments.reset_index()
+    # svcTagMoments = svcTagWkMoments.reset_index()
 
     # Merge everything back together
     awsCalcs = pd.merge(
@@ -258,8 +275,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
     results = [-1, 1, 0, 0, 0]
 
     awsMacdTesting["crossFlag"] = np.select(conditions, results)
-    dtChk = (datetime.now()).strftime("%Y-%m-%d")
-    trendTest = awsMacdTesting[awsMacdTesting["date"] == dtChk]
+    trendTest = awsMacdTesting[awsMacdTesting["date"] == dt_to_proc]
     macdAlerts = trendTest[trendTest["crossFlag"] != 0]
 
     # Service / Tag Spike Alerts
@@ -272,8 +288,7 @@ def alerting_amazon(user, pwd, cwd, z_in):
         )
     )
     tagSpikeTesting = tagSpikeTesting.sort_values(by=["SERVICE", "TAG", "date"])
-    dtChk = (datetime.now()).strftime("%Y-%m-%d")
-    tagSpikeTest = tagSpikeTesting[tagSpikeTesting["date"] == dtChk]
+    tagSpikeTest = tagSpikeTesting[tagSpikeTesting["date"] == dt_to_proc]
     tagSpikeAlerts = tagSpikeTest[tagSpikeTest["svc_tag_day_zscore"] >= z_in]
     tagSpikeAlerts.head()
 
@@ -287,10 +302,32 @@ def alerting_amazon(user, pwd, cwd, z_in):
         )
     )
     svcSpikeTesting = svcSpikeTesting.sort_values(by=["SERVICE", "date"])
-    dtChk = (datetime.now()).strftime("%Y-%m-%d")
-    svcSpikeTest = svcSpikeTesting[svcSpikeTesting["date"] == dtChk]
+    svcSpikeTest = svcSpikeTesting[svcSpikeTesting["date"] == dt_to_proc]
     svcSpikeAlerts = svcSpikeTest[svcSpikeTest["svc_day_zscore"] >= z_in]
     svcSpikeAlerts.head()
+
+    # Filter out service and tag combinations with USD less than .01 on dt_to_proc from all 'Alerts' dataframes
+    low_value_service_tags = awsCosts[
+        (awsCosts["STARTDATE"] == dt_to_proc) & (awsCosts["USD"] < 0.01)
+    ][["SERVICE", "TAG"]].drop_duplicates()
+
+    tagSpikeAlerts = tagSpikeAlerts.merge(
+        low_value_service_tags, on=["SERVICE", "TAG"], how="left", indicator=True
+    )
+    tagSpikeAlerts = tagSpikeAlerts[tagSpikeAlerts["_merge"] == "left_only"].drop(
+        columns="_merge"
+    )
+
+    # Filter out records where the 'TAG' column is empty or NaN in the 'tagSpikeAlerts' dataframe
+    tagSpikeAlerts = tagSpikeAlerts[tagSpikeAlerts["TAG"].notna()]
+
+    # Now filter services with low value USD
+    low_value_services = awsCosts[
+        (awsCosts["STARTDATE"] == dt_to_proc) & (awsCosts["USD"] < 0.01)
+    ]["SERVICE"].drop_duplicates()
+
+    macdAlerts = macdAlerts[~macdAlerts["SERVICE"].isin(low_value_services)]
+    svcSpikeAlerts = svcSpikeAlerts[~svcSpikeAlerts["SERVICE"].isin(low_value_services)]
 
     return [
         awsMacdTesting,

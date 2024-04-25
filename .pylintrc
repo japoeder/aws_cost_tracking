@@ -75,7 +75,9 @@ disable=
     line-too-long,
     raise-missing-from,
     too-many-arguments,
-    consider-using-enumerate
+    consider-using-enumerate,
+    trailing-whitespace,
+    use-dict-literal,
 #    len-as-condition,
 #    too-few-public-methods,
 #    anomalous-backslash-in-string,

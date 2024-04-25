@@ -9,7 +9,6 @@ def spike_plotter(
     filter_on,
     filter_val,
     spike_att,
-    day_highlight,
     file_name,
     cwd,
     region,
@@ -18,9 +17,31 @@ def spike_plotter(
     envConnData,
 ):
     """Driver method to create spike plot for AWS cost spikes"""
+
+    # Format spike_att to 2 decimal places
+    df_in[spike_att] = df_in[spike_att].round(2)
+
     df_in_red = df_in[df_in[filter_on] == filter_val].copy().tail(n=365)
+
+    # Create date string
+    df_in_red["DATE"] = (
+        df_in_red["YEAR"] * 10000 + df_in_red["MONTH"] * 100 + df_in_red["DAY"]
+    ).astype(str)
+    # round spike_att to 2 decimal places
+    df_in_red[spike_att] = df_in_red[spike_att].round(2)
+
+    # Calculate mean and standard deviation
+    mean = df_in_red[spike_att].mean()
+    std_dev = df_in_red[spike_att].std()
+    highlight_threshold = mean + z_in * std_dev
+
+    # Select 'DATE' values into a list where spike_att is greater than highlight_threshold
+    highlighted_dates = df_in_red[df_in_red[spike_att] > highlight_threshold][
+        "DATE"
+    ].tolist()
+
+    colors = {date: "red" for date in highlighted_dates}
     default_color = "blue"
-    colors = {day_highlight: "red"}
     color_discrete_map = {
         c: colors.get(c, default_color) for c in df_in_red.DATE.unique()
     }
@@ -32,10 +53,6 @@ def spike_plotter(
             p_title = f"{filter_val}"
     else:
         p_title = plot_title
-
-    mean = df_in_red[spike_att].mean()
-    std_dev = df_in_red[spike_att].std()
-    # print(mean, std_dev)
 
     fig = px.bar(
         df_in_red,
@@ -67,7 +84,18 @@ def spike_plotter(
     )
 
     fig.update_traces(showlegend=False)
-    fig.show()
+    # Center plot title
+    fig.update_layout(title_x=0.5)
+    # rotate x-axis labels 45 degrees
+    fig.update_xaxes(tickangle=-45)
+    # Set y-axis format to $0.00
+    fig.update_yaxes(tickprefix="$", tickformat=",0.00f")
+    # y-axis title
+    fig.update_yaxes(title_text="$ Spend")
+    # x-axis title
+    fig.update_xaxes(title_text="Date")
+
+    # fig.show()
     fig.write_html(f"{cwd}/output/plots/{file_name}.html", auto_open=False)
     s3 = boto3.client("s3")
     s3.upload_file(

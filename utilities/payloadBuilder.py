@@ -3,9 +3,8 @@
 from datetime import datetime
 
 
-def genText(
+def genAlertText(
     top_n,
-    region,
     top_sort_by,
     alertDF,
     upLabel,
@@ -14,15 +13,13 @@ def genText(
     resConditions,
     prefix,
     svc_override,
+    dt_to_proc,
 ):
     """Text generator for alerts"""
     pbTemp = {}
-    if region is not False:
-        alertDF = alertDF[alertDF["REGION"] == region]
-    else:
-        pass
 
-    file_dt = datetime.now().strftime("%Y%m%d")
+    # file_dt should be 1 day prior to dt_to_proc
+    file_dt = datetime.strptime(dt_to_proc, "%Y-%m-%d").strftime("%Y%m%d")
 
     #####################################
     ####           ALERTING          ####
@@ -39,7 +36,7 @@ def genText(
         for a in range(len(res_set)):
             # print(res_set[a][resPos[1] : resPos[2]])
             if svc_override is None:
-                svc = f"{res_set[a][resPos[1]: resPos[2]][0]}_"
+                svc = (f"{res_set[a][resPos[1]: resPos[2]][0]}_").replace(" ", "")
                 formatted_output = res_set[a][resPos[1] : resPos[2]]
             elif svc_override == "dt_conv":
                 svc = ""
@@ -54,7 +51,7 @@ def genText(
                 upList.append(
                     [
                         formatted_output,
-                        f"{prefix}{svc}{region}_{file_dt}",
+                        f"{prefix}{svc}{file_dt}",
                     ]
                 )
             elif res_set[a][resPos[0]] <= resConditions[1]:
@@ -62,7 +59,7 @@ def genText(
                 downList.append(
                     [
                         formatted_output,
-                        f"{prefix}{svc}{region}_{file_dt}",
+                        f"{prefix}{svc}{file_dt}",
                     ]
                 )
 
@@ -81,14 +78,55 @@ def genText(
     return pbTemp
 
 
-def buildPayload(amzAlerts, z_in):
+def genSummaryText(
+    prefix,
+    summarySectionLabel,
+    dt_to_proc,
+):
+    """Text generator for alerts"""
+    pbTemp = {}
+
+    file_dt = datetime.strptime(dt_to_proc, "%Y-%m-%d").strftime("%Y%m%d")
+
+    #####################################
+    ####       SUMMARY SECTION       ####
+    #####################################
+    summaryList = []
+
+    formatted_output = ["Daily Spend x Service"]
+    summaryList.append(
+        [
+            formatted_output,
+            f"{prefix}_dailySpendxService_{file_dt}",
+        ]
+    )
+
+    formatted_output = ["Month to Date Spend x Service"]
+    summaryList.append(
+        [
+            formatted_output,
+            f"{prefix}_mtdSpendxService_{file_dt}",
+        ]
+    )
+    pbTemp[summarySectionLabel] = summaryList
+
+    return pbTemp
+
+
+def buildPayload(amzAlerts, z_in, dt_to_proc):
     """Driver method build and send payload text for alerts"""
 
     top_n = 999
     payloadRaw = {}
-    payloadRaw["awsTrends"] = genText(
+
+    payloadRaw["awsSummary"] = genSummaryText(
+        prefix="amz",
+        summarySectionLabel="AWS Services Summary",
+        dt_to_proc=dt_to_proc,
+    )
+
+    payloadRaw["awsTrends"] = genAlertText(
         top_n=top_n,
-        region=False,
         top_sort_by="crossFlag",
         alertDF=amzAlerts[1],
         upLabel="Upward Trending AWS Services",
@@ -97,24 +135,11 @@ def buildPayload(amzAlerts, z_in):
         resConditions=[1, -1],
         prefix="amz_",
         svc_override=None,
+        dt_to_proc=dt_to_proc,
     )
 
-    payloadRaw["awsTagSpikes"] = genText(
+    payloadRaw["awsSvcSpikes"] = genAlertText(
         top_n=top_n,
-        region=False,
-        top_sort_by="svc_tag_day_zscore",
-        alertDF=amzAlerts[3],
-        upLabel="Spike up in AWS Services / Tags",
-        downLabel="Spike down in AWS Services / Tags",
-        resPos=[5, 0, 2],
-        resConditions=[z_in, -1 * z_in],
-        prefix=None,
-        svc_override=None,
-    )
-
-    payloadRaw["awsSvcSpikes"] = genText(
-        top_n=top_n,
-        region=False,
         top_sort_by="svc_day_zscore",
         alertDF=amzAlerts[5],
         upLabel="Spike up in AWS Services",
@@ -123,6 +148,7 @@ def buildPayload(amzAlerts, z_in):
         resConditions=[z_in, -1 * z_in],
         prefix="amz_tot_",
         svc_override=None,
+        dt_to_proc=dt_to_proc,
     )
 
     return payloadRaw

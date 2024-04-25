@@ -8,7 +8,7 @@ from utilities.mysqlConnect import paramDefs, mysqlQuery
 from utilities.collectAWS import process_report
 
 
-def process_amazon(envConnData, cwd):
+def process_amazon(envConnData, dt_to_proc):
     """
     DRIVER METHOD FOR DATA PROCESSING
     """
@@ -21,12 +21,10 @@ def process_amazon(envConnData, cwd):
     ##########################
 
     # Start and end times for reporting
-    # We process last 3 days and dedup to ensure a day isn't missed.
-    end = datetime.now().strftime("%Y-%m-%d")
-    start_pre = datetime.now() - timedelta(days=7)
+    # Process from dt_to_proc back 7 days
+    end = dt_to_proc
+    start_pre = datetime.strptime(dt_to_proc, "%Y-%m-%d") - timedelta(days=7)
     start = start_pre.strftime("%Y-%m-%d")
-    # ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # print(start, end)
 
     # Grab data from AWS cost explorer API
     ceDF = process_report(start=start, end=end)
@@ -61,14 +59,28 @@ def process_amazon(envConnData, cwd):
     payload["uploadTargetTable"] = "AWS_COST_EXP_OUTPUT"
     mysqlQuery(payload)
 
-    # Dedup extra data from 7 day overlap
+    # Dedup extra data from 7 day overlap into tmp table
     dedupAWS = """
-    create or replace table JPOEDER_AA.DW.AWS_COST_EXP_OUTPUT as
+    create table AWS_COST_EXP_OUTPUT_tmp as
     select distinct *
-    from JPOEDER_AA.DW.AWS_COST_EXP_OUTPUT;
+    from AWS_COST_EXP_OUTPUT;
     """
     payload["write"] = False
     payload["query"] = dedupAWS
     payload["df"] = False
     payload["uploadTargetTable"] = False
+    mysqlQuery(payload)
+
+    # Drop old table and rename tmp table
+    dropAWS = """
+    drop table AWS_COST_EXP_OUTPUT;
+    """
+    renameAWS = """
+    alter table AWS_COST_EXP_OUTPUT_tmp
+    rename to AWS_COST_EXP_OUTPUT;
+    """
+    payload["write"] = False
+    payload["query"] = dropAWS
+    mysqlQuery(payload)
+    payload["query"] = renameAWS
     mysqlQuery(payload)

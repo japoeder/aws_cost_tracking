@@ -8,10 +8,10 @@ from sqlalchemy.orm import sessionmaker
 def paramDefs(envConnData):
     """Method to define connection parameters for MySQL."""
     connDict = {
-        "user": envConnData["user"],  # mysql user name
-        "password": envConnData["pwd"],  # mysql password
-        "database": envConnData["db"],  # mysql database
-        "db_url": envConnData["db_url"],  # mysql url
+        "user": envConnData["mysql_usr"],  # mysql user name
+        "password": envConnData["mysql_pwd"],  # mysql password
+        "database": envConnData["mysql_db"],  # mysql database
+        "db_url": envConnData["mysql_url"],  # mysql url
         "uploadTargetTable": False,  # mysql upload destination table
         "df": False,  # dataframe for mysql upload
         "write": False,  # flag to upload data
