@@ -53,7 +53,7 @@ In a similar fasion, we look at daily spend over the last year but instead calcu
 When the MACD crosses down the 18EWM, the trend reverses downward and vice versa when it crosses up (as seen in the image).  MACD is calculated as:
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/macd_calc?raw=true">
+  <img width="650" height="400" src="https://raw.githubusercontent.com/japoeder/collectability_cost_tracking/24918ec01a65abecc5ee6a9c7a261f766dd5b519/_images/ema.svg">
 </p>
 
 
