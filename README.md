@@ -95,6 +95,6 @@ Standing this up requires:
   * You'll need to create a token for authentication
   * The channel ID where alerts should be sent is also needed
 
-For automation:
+For automation (recommended):
 
-* AWS EC2 instance (lowspec) to kick off the repo with crontab
+* AWS EC2 instance (lowspec) running Linux to kick off the repo with crontab
