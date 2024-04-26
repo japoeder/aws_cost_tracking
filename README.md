@@ -36,7 +36,7 @@ To determine if a spike has occured in a given day we look at daily data over th
 where *x* is the daily cost value, mu is the mean, and sigma is the standard deviation.  Once the scores are calculated across days and services, if the z-score is above a predefined threshold, and alert is sent via the Slack API for that service.  Here is a sample image of an alert:
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/spike_alert_example.png?raw=true">
+  <img width="650" height="400" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/spike_alert_example.png?raw=true">
 </p>
 
 Note the prior day is highlighted in the image, but the code has been updated to highlight every day that is above the predefined threshold.  The current setting is one standard deviation above the mean, though this can be *increased* to reduce the number of alerts that will be thrown.
@@ -46,19 +46,19 @@ Note the prior day is highlighted in the image, but the code has been updated to
 In a similar fasion, we look at daily spend over the last year but instead calculate the MACD to determine if the cost trend has reversed direction.  The **Moving Average Convergence/Divergence** is a momentum oscillator primarily used to trade trends. It appears on the chart as two lines which oscillate without boundaries.
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/trend_alert_example.png?raw=true">
+  <img width="650" height="400" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/trend_alert_example.png?raw=true">
 </p>
 
 When the MACD crosses down the 18EWM, the trend reverses downward and vice versa when it crosses up (as seen in the image).  MACD is calculated as:
 
 <p align="center">
-  <img width="275" height="50" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/macd_line.jpeg?raw=true">
+  <img width="275" height="50" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/macd_line.jpeg?raw=true">
 </p>
 
 and the 18 day EMA as:
 
 <p align="center">
-  <img width="275" height="50" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/signal_line.jpeg?raw=true">
+  <img width="275" height="50" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/signal_line.jpeg?raw=true">
 </p>
 
 #### Summary plots
@@ -66,11 +66,11 @@ and the 18 day EMA as:
 Example charts of the summary data provided are as follows:
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/mtd_x_svc_example.png?raw=true">
+  <img width="650" height="400" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/mtd_x_svc_example.png?raw=true">
 </p>
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/svc_x_day_example.png?raw=true">
+  <img width="650" height="400" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/svc_x_day_example.png?raw=true">
 </p>
 
 #### Alerting
@@ -78,7 +78,7 @@ Example charts of the summary data provided are as follows:
 These flow through to the user in the form of Slack messages, and are formatted as follows:
 
 <p align="center">
-  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/slack_bot_example.png?raw=true">
+  <img width="650" height="400" src="https://github.com/japoeder/aws_cost_tracking/blob/master/_images/slack_bot_example.png?raw=true">
 </p>
 
 When clicking on the 'Plot' button, it opens the appropriate plot as shown in the examples above.  The Slack image only shows the summary ones, but there are sections for upward trending costs, downward trending costs, and spikes that cross the predefined z-score threshold.
