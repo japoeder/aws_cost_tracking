@@ -30,11 +30,34 @@ It's really easy for AWS costs to slip under the radar and accrue to unexpected 
 To determine if a spike has occured in a given day we look at daily data over the previous year, calculate the average daily spend by service as well as the standard deviation.  This is then used to calculate the z-score as follows:
 
 <p align="center">
-  <img width="700" height="200" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/zscore.jpeg?raw=true">
+  <img width="120" height="50" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/zscore.jpeg?raw=true">
+</p>
+
+where *x* is the daily cost value, mu is the mean, and sigma is the standard deviation.  Once the scores are calculated across days and services, if the z-score is above a predefined threshold, and alert is sent via the Slack API for that service.  Here is a sample image of an alert:
+
+
+<p align="center">
+  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/spike_alert_example.png?raw=true">
+</p>
+
+Note the prior day is highlighted in the image, but the code has been updated to highlight every day that is above the predefined threshold.  The current setting is one standard deviation above the mean, though this can be *increased* to reduce the number of alerts that will be thrown.
+
+#### Cost trend reversals
+
+In a similar fasion, we look at daily spend over the last year but instead calculate the MACD to determine if the cost trend has reversed direction.  The **Moving Average Convergence/Divergence** is a momentum oscillator primarily used to trade trends. It appears on the chart as two lines which oscillate without boundaries.
+
+<p align="center">
+  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/trend_alert_example.png?raw=true">
+</p>
+
+When the MACD crosses down the 18EWM, the trend reverses downward and vice versa when it crosses up (as seen in the image).  MACD is calculated as:
+
+<p align="center">
+  <img width="650" height="400" src="https://github.com/japoeder/collectability_cost_tracking/blob/master/_images/macd_calc?raw=true">
 </p>
 
 
-orders.csv
+
 
 Order level data with various dimensionality for product, department, etc. There are total 3421083 orders made by total 206209 users.
 
