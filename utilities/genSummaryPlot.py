@@ -1,6 +1,7 @@
 """Program to create plotting for AWS cost trend changes"""
 
 import plotly.express as px
+import pandas as pd
 import boto3
 
 
@@ -42,6 +43,13 @@ def summary_plotter(
     )
 
     file_name = f"amz_dailySpendxService_{file_dt}"
+
+    # Convert 'DATE_STR' to datetime with the correct format
+    df_in[1]['DATE_STR'] = pd.to_datetime(df_in[1]['DATE_STR'], format='%Y%m%d')
+
+    # Sort df_in[1] by 'DATE_STR' in ascending order
+    df_in[1] = df_in[1].sort_values(by='DATE_STR', ascending=True)
+
     fig = px.bar(
         df_in[1],
         x="DATE_STR",

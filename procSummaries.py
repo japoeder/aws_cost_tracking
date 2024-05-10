@@ -1,7 +1,9 @@
 """Processing AWS cost data summaries."""
 
 import warnings
+import datetime
 import numpy as np
+import pandas as pd
 from utilities.mysqlConnect import mysqlQuery, paramDefs
 
 np.seterr(divide="ignore", invalid="ignore")
@@ -65,6 +67,14 @@ def summarize_amazon(envConnData, dt_to_proc):
     # Round MTD_SPEND to 2 decimal places
     awsCalcs["TOTAL_SPEND"] = awsCalcs["TOTAL_SPEND"].round(2)
 
+    # Convert 'STARTDATE' to datetime for filtering
+    awsCalcs['STARTDATE'] = pd.to_datetime(awsCalcs['STARTDATE'])
+
+    # Filter data to include only the current month
+    current_month_start = pd.to_datetime(datetime.datetime.now().strftime('%Y-%m-01'))
+    next_month_start = pd.to_datetime((datetime.datetime.now().replace(day=28) + pd.DateOffset(days=4)).strftime('%Y-%m-01'))
+    awsCalcs = awsCalcs[(awsCalcs['STARTDATE'] >= current_month_start) & (awsCalcs['STARTDATE'] < next_month_start)]
+
     # Aggregate the data by service, year, and month
     amz_tot_x_svc = (
         awsCalcs.groupby(["SERVICE"]).agg({"TOTAL_SPEND": "sum"}).reset_index()
@@ -74,5 +84,7 @@ def summarize_amazon(envConnData, dt_to_proc):
         .agg({"TOTAL_SPEND": "sum"})
         .reset_index()
     )
+
+
 
     return [amz_tot_x_svc, amz_tot_x_svc_x_day]
