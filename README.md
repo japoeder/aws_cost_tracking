@@ -9,6 +9,17 @@ It's really easy for AWS costs to slip under the radar and accrue to unexpected 
 - Provide month to date totals by service
 - Provide totals across services by day
 
+### Running cost reporting
+
+1. Download and install Python on your computer
+2. Clone this repo, and navigate to aws_cost_tracking directory (containing the README.md)
+3. Set up environment by running the following in the terminal:
+
+   1. conda create --name aws_cost_tracking python=3.10
+   2. conda activate aws_cost_tracking
+   3. conda config --add channels conda-forge
+   4. conda install --file requirements.txt
+
 ## Project Structure
 
 ```
