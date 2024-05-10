@@ -1,2 +1,4 @@
 _scratch
-
+output/plots/
+__pycache__/
+utilities/__pycache__/
