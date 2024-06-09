@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Program to run AWS cost alerting"""
 
 # Import libraries
@@ -19,7 +20,7 @@ warnings.filterwarnings(
 )
 
 
-def main(inputs, procData, palert, z_in, rundate=None):
+def main(procData, palert, z_in, rundate=None):
     """Driver method to run AWS cost alerting"""
     # Get environment info
     cwd = __file__
@@ -52,8 +53,7 @@ def main(inputs, procData, palert, z_in, rundate=None):
     ####################################
 
     # Grab credentials for AMZ (us-east)
-    credFiles = inputs
-    envConnData = get_cred(credFiles[0], credFiles[1])
+    envConnData = get_cred()
 
     # Process AMZ data and alerts
     if procData == 1:
@@ -84,7 +84,7 @@ def main(inputs, procData, palert, z_in, rundate=None):
     payloadFinal = []
     payloadFinal = buildPayload(amzAlerts, z_in, dt_to_proc)
     msg = f"[{compilePayloadText(payloadFinal, envConnData['s3_url'])}]"
-    print(msg)
+    #print(msg)
     # print()
 
     ####################################
@@ -97,7 +97,7 @@ def main(inputs, procData, palert, z_in, rundate=None):
         slackAlert("C070ALFTDAM", envConnData["slack_token"], msg)
     else:
         # private
-        slackAlert("C070ALFTDAM", envConnData["slack_token"], msg)
+        slackAlert("D070FUN4C85", envConnData["slack_token"], msg)
 
     return [[amzSummary, amzAlerts], cwd, payloadFinal]
 
@@ -107,25 +107,16 @@ if __name__ == "__main__":
     public_alert = 0
     z_cutoff = 1
     ec2_local = 0
-    mysqlCredDict = {
-        "mysql_usr": "COLLECTABILITY_COST_TRACKING_MYSQL_USER",
-        "mysql_pwd": "COLLECTABILITY_COST_TRACKING_MYSQL_PWD",
-        "mysql_url": "COLLECTABILITY_COST_TRACKING_MYSQL_URL",
-        "mysql_db": "COLLECTABILITY_COST_TRACKING_MYSQL_DB",
-        "slack_token": "COLLECTABILITY_COST_TRACKING_SLACK_TOKEN",
-        "s3_url": "COLLECTABILITY_COST_TRACKING_S3_URL",
-        "s3_bucket": "COLLECTABILITY_COST_TRACKING_S3_BUCKET",
-    }
     if ec2_local == 0:
         zshrc = "/Users/jpoeder/.zshrc"
     else:
         zshrc = "/home/ubuntu/.zshrc"
 
     # If specifying a date to process, set it here one day AHEAD of desired end date
-    # in_date = datetime.datetime(2024, 4, 24).strftime("%Y-%m-%d")
+    #in_date = datetime.datetime(2024, 5, 23).strftime("%Y-%m-%d")
     in_date = None
 
     # Kick off cost reporting
     runMain = main(
-        [zshrc, mysqlCredDict], proc_data, public_alert, z_cutoff, rundate=in_date
+        proc_data, public_alert, z_cutoff, rundate=in_date
     )

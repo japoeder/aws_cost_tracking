@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import zscore
 from utilities.mysqlConnect import paramDefs, mysqlQuery
+from utilities.dateExpand import date_expand
 
 np.seterr(divide="ignore", invalid="ignore")
 
@@ -53,6 +54,10 @@ def alerting_amazon(envConnData, z_in, dt_to_proc):
     ).agg({"USD": ["sum"]})
     awsSvcDayAgg.columns = ["USD"]
     awsSvcDayAgg = awsSvcDayAgg.reset_index()
+
+    # Expand the data to include all days in the month
+    awsSvcDayAgg = date_expand(awsSvcDayAgg)
+
 
     # Z-score by service across days
     awsSvcDayZs = awsSvcDayAgg.copy()
@@ -328,6 +333,10 @@ def alerting_amazon(envConnData, z_in, dt_to_proc):
 
     macdAlerts = macdAlerts[~macdAlerts["SERVICE"].isin(low_value_services)]
     svcSpikeAlerts = svcSpikeAlerts[~svcSpikeAlerts["SERVICE"].isin(low_value_services)]
+
+    # Drop startdate from certain dataframes
+    macdAlerts.drop(columns=["STARTDATE"], inplace=True)
+    svcSpikeAlerts.drop(columns=["STARTDATE"], inplace=True)
 
     return [
         awsMacdTesting,
