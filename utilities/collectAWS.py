@@ -3,6 +3,7 @@
 from datetime import datetime, timedelta
 import boto3
 import pandas as pd
+import os
 
 
 def get_cost_and_usage(bclient: object, start: str, end: str) -> list:
@@ -43,9 +44,11 @@ def get_cost_and_usage(bclient: object, start: str, end: str) -> list:
 def process_report(start: str, end: str):
     """Method to process report"""
     # cost explorer
-    profile = "default"
     SERVICE_NAME = "ce"
-    bclient = boto3.Session(profile_name=profile).client(SERVICE_NAME)
+    bclient = boto3.Session(
+                            aws_access_key_id=os.getenv("aws_access_key_id"),
+                            aws_secret_access_key=os.getenv("aws_secret_access_key"),
+                            ).client(SERVICE_NAME)
 
     date_format = "%Y-%m-%d"
     s = datetime.strptime(start, date_format)

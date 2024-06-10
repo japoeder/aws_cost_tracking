@@ -97,7 +97,7 @@ def main(procData, palert, z_in, rundate=None):
         slackAlert("C070ALFTDAM", envConnData["slack_token"], msg)
     else:
         # private
-        slackAlert("D070FUN4C85", envConnData["slack_token"], msg)
+        slackAlert("C076TPMFAFR", envConnData["slack_token"], msg)
 
     return [[amzSummary, amzAlerts], cwd, payloadFinal]
 

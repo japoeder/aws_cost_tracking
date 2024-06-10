@@ -2,6 +2,7 @@
 
 import plotly.express as px
 import boto3
+import os
 
 
 def macd_plotter(
@@ -64,8 +65,13 @@ def macd_plotter(
     fig.update_xaxes(title_text="Date")
 
     fig.write_html(f"{cwd}/output/plots/{file_name}.html", auto_open=False)
-    s3 = boto3.client("s3")
-    s3.upload_file(
+    # Upload to S3
+    SERVICE_NAME = "s3"
+    bclient = boto3.Session(
+                            aws_access_key_id=os.getenv("aws_access_key_id"),
+                            aws_secret_access_key=os.getenv("aws_secret_access_key"),
+                            ).client(SERVICE_NAME)
+    bclient.upload_file(
         f"{cwd}/output/plots/{file_name}.html",
         envConnData["s3_bucket"],
         f"{file_name}.html",
