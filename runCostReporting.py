@@ -4,6 +4,7 @@
 # Import libraries
 import datetime
 import warnings
+import os
 from procSummaries import summarize_amazon
 from procAmzAlerts import alerting_amazon
 from procAmzData import process_amazon
@@ -94,10 +95,10 @@ def main(procData, palert, z_in, rundate=None):
     if palert == 1:
         print("running public alert")
         # public
-        slackAlert("C070ALFTDAM", envConnData["slack_token"], msg)
+        slackAlert(os.getenv("slack_public"), envConnData["slack_token"], msg)
     else:
         # private
-        slackAlert("C076TPMFAFR", envConnData["slack_token"], msg)
+        slackAlert(os.getenv("slack_private"), envConnData["slack_token"], msg)
 
     return [[amzSummary, amzAlerts], cwd, payloadFinal]
 
