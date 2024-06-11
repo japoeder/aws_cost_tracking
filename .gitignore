@@ -6,3 +6,4 @@ utilities/__pycache__/
 output
 .env_collectability
 .env_kombatix
+.DS_Store
