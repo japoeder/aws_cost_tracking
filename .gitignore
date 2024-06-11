@@ -4,3 +4,5 @@ __pycache__/
 utilities/__pycache__/
 .env
 output
+.env_collectability
+.env_kombatix
