@@ -94,7 +94,7 @@ def main(procData, palert, z_in, rundate=None):
     if palert == 1:
         print("running public alert")
         # public
-        slackAlert("C070ALFTDAM", envConnData["slack_token"], msg)
+        slackAlert("C0775M290AH", envConnData["slack_token"], msg)
     else:
         # private
         slackAlert("C076TPMFAFR", envConnData["slack_token"], msg)
